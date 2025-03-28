@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import base64
 import subprocess
 import sys
 
@@ -17,17 +16,18 @@ def run_command(command):
 def setup_kubeconfig():
     """Set up Kubernetes configuration from environment variable."""
     print("🔹 Setting up Kubernetes configuration")
-    kubeconfig_base64 = os.getenv("KUBECONFIG", "")
+    kubeconfig = os.getenv("KUBECONFIG", "")
 
-    if not kubeconfig_base64:
+    if not kubeconfig:
         print("❌ KUBECONFIG environment variable is missing!")
         sys.exit(1)
 
     os.makedirs(os.path.expanduser("~/.kube"), exist_ok=True)
     kubeconfig_path = os.path.expanduser("~/.kube/config")
 
-    with open(kubeconfig_path, "wb") as f:
-        f.write(base64.b64decode(kubeconfig_base64))
+    # Directly write the KUBECONFIG secret to the kubeconfig file
+    with open(kubeconfig_path, "w") as f:
+        f.write(kubeconfig)
 
     os.environ["KUBECONFIG"] = kubeconfig_path
     run_command("kubectl version --client")
