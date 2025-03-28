@@ -33,6 +33,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+       - name: Configure Kubernetes cluster
+         run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
 
       - name: Run Kubernetes Troubleshooting Action
         uses: becloudready/k8s-interview-action@v1
