@@ -13,25 +13,7 @@ def run_command(command):
         print(f"❌ Error executing command: {command}\n{e.stderr}")
         sys.exit(1)
 
-def setup_kubeconfig():
-    """Set up Kubernetes configuration from environment variable."""
-    print("🔹 Setting up Kubernetes configuration")
-    kubeconfig = os.getenv("KUBECONFIG", "")
 
-    if not kubeconfig:
-        print("❌ KUBECONFIG environment variable is missing!")
-        sys.exit(1)
-
-    os.makedirs(os.path.expanduser("~/.kube"), exist_ok=True)
-    kubeconfig_path = os.path.expanduser("~/.kube/config")
-
-    # Directly write the KUBECONFIG secret to the kubeconfig file
-    with open(kubeconfig_path, "w") as f:
-        f.write(kubeconfig)
-
-    os.environ["KUBECONFIG"] = kubeconfig_path
-    run_command("kubectl version --client")
-    run_command("kubectl cluster-info")
 
 def deploy_scenario(name, yaml_content):
     """Deploy a given Kubernetes scenario."""
