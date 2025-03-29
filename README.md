@@ -9,7 +9,9 @@ It supports multiple failure scenarios, including:
 - ⏳ **Slow-Starting Containers**  
 - ⚠ **Scheduling Issues**  
 - 🖥 **Taints & Tolerations**  
-- 🔄 **Affinity/Anti-Affinity Constraints**  
+- 🔄 **Affinity/Anti-Affinity Constraints**
+
+Please raise PR to add more challenge/problems
 
 ---
 
