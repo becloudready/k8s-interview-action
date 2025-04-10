@@ -1,17 +1,15 @@
-# Use a lightweight Python base image
-FROM python:3.11-alpine
+FROM python:3.9-slim
 
-# Install required dependencies
-RUN apk add --no-cache curl bash kubectl
-
-# Set working directory
 WORKDIR /app
 
-# Copy entrypoint script
-COPY entrypoint.py /app/entrypoint.py
+# Install dependencies
+RUN pip install requests
 
-# Make entrypoint executable
-RUN chmod +x /app/entrypoint.py
+# Copy the interview script
+COPY troubleshoot_scenarios.py .
 
-# Set the entrypoint (exec ensures proper signal handling)
-ENTRYPOINT ["python3", "/app/entrypoint.py"]
+# Create directory for ConfigMap mount
+RUN mkdir -p /etc/app
+
+# Set default command
+CMD ["python", "./troubleshoot_scenarios.py"]
