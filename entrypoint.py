@@ -1,201 +1,139 @@
 #!/usr/bin/env python3
-
 import os
-import subprocess
 import sys
+import socket
+import requests
+from pathlib import Path
+import time
 
-def run_command(command):
-    """Run shell commands safely and capture output."""
+def print_result(success, message):
+    color = "\033[32m" if success else "\033[31m"
+    symbol = "✓" if success else "✗"
+    print(f"{color}{symbol} {message}\033[0m")
+
+def print_header(title):
+    print(f"\n\033[1m=== {title} ===\033[0m")
+
+def check_config_map():
+    """Verify ConfigMap mounting and content"""
+    print_header("ConfigMap Verification")
+    config_path = "/etc/app/config.yaml"
+    issues_found = 0
+
+    # Check file existence and readability
+    if not Path(config_path).exists():
+        print_result(False, f"Config file missing at {config_path}")
+        issues_found += 1
+    else:
+        try:
+            with open(config_path) as f:
+                content = f.read()
+            print_result(True, f"Config file exists at {config_path}")
+            print(f"Content:\n{content}")
+        except Exception as e:
+            print_result(False, f"Failed to read config - {str(e)}")
+            issues_found += 1
+
+    # Check actual mounted files
+    print("\nMounted files in /etc/app:")
     try:
-        result = subprocess.run(command, shell=True, check=True, text=True, capture_output=True)
-        print(result.stdout)
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error executing command: {command}\n{e.stderr}")
-        sys.exit(1)
+        for f in Path('/etc/app').iterdir():
+            print(f"  - {f.name}")
+    except Exception as e:
+        print(f"Error reading directory: {str(e)}")
 
+    return issues_found == 0
 
+def check_dns_resolution():
+    """Test DNS resolution with detailed diagnostics"""
+    print_header("DNS Resolution Test")
+    test_hosts = {
+        "Cluster DNS": "kubernetes.default.svc.cluster.local",
+        "Internet": "google.com",
+        "Config Reference": "db-service",
+        "External API": "api.github.com"
+    }
 
-def deploy_scenario(name, yaml_content):
-    """Deploy a given Kubernetes scenario."""
-    print(f"🔹 Deploying {name}")
-    command = f"echo '{yaml_content}' | kubectl apply -n {namespace} -f -"
-    run_command(command)
+    all_success = True
+    for name, host in test_hosts.items():
+        try:
+            start = time.time()
+            ip = socket.gethostbyname(host)
+            latency = (time.time() - start) * 1000
+            print_result(True, f"{name.ljust(20)} → {ip.ljust(15)} ({latency:.2f}ms)")
+        except Exception as e:
+            print_result(False, f"{name.ljust(20)} → Failed: {str(e)}")
+            all_success = False
 
-def verify_deployments():
-    """Verify that deployments are created successfully."""
-    print("🔹 Verifying deployments")
-    run_command(f"kubectl get deployments -n {namespace}")
+    if not all_success:
+        print("\nDNS Troubleshooting Steps:")
 
-# Get namespace from environment variable or use default
-namespace = os.getenv("NAMESPACE", "troubleshooting-scenarios")
+    return all_success
+
+def check_network_connectivity():
+    """Verify HTTP connectivity"""
+    print_header("Network Connectivity")
+    test_urls = {
+        "HTTP": "http://google.com",
+        "HTTPS": "https://google.com",
+        "Cluster API": "https://kubernetes.default.svc.cluster.local"
+    }
+
+    all_success = True
+    for name, url in test_urls.items():
+        try:
+            start = time.time()
+            r = requests.get(url, timeout=5, verify=False)
+            latency = (time.time() - start) * 1000
+            print_result(True, f"{name.ljust(15)} → {r.status_code} ({latency:.2f}ms)")
+        except Exception as e:
+            print_result(False, f"{name.ljust(15)} → Failed: {str(e)}")
+            all_success = False
+
+    return all_success
+
+def gather_system_info():
+    """Collect diagnostic information"""
+    print_header("System Diagnostics")
+
+    # DNS Configuration
+    print("\n/etc/resolv.conf:")
+    try:
+        print(Path('/etc/resolv.conf').read_text())
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    # Mount Information
+    print("\nActive Mounts:")
+    try:
+        print(Path('/proc/mounts').read_text())
+    except Exception as e:
+        print(f"Error: {str(e)}")
 
 def main():
-    setup_kubeconfig()
+    print("\033[1m=== Kubernetes Troubleshooting Diagnostic ===\033[0m")
 
-    print(f"🔹 Ensuring namespace: {namespace}")
-    run_command(f"kubectl create namespace {namespace} --dry-run=client -o yaml | kubectl apply -f -")
+    # Run diagnostic checks
+    config_ok = check_config_map()
+    dns_ok = check_dns_resolution()
+    network_ok = check_network_connectivity()
 
-    # Define YAML manifests for different troubleshooting scenarios
-    oom_scenario = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: oom-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: oom-app
-  template:
-    metadata:
-      labels:
-        app: oom-app
-    spec:
-      containers:
-      - name: oom-container
-        image: becloudready/k8s-troubleshooting-scenarios:2.0.0
-        env:
-        - name: FAILURE_MODE
-          value: "oom"
-        resources:
-          limits:
-            memory: "128Mi"
-    """
+    # Show detailed info if any checks failed
+    if not all([config_ok, dns_ok, network_ok]):
+        gather_system_info()
 
-    missing_file_scenario = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: missing-file-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: missing-file-app
-  template:
-    metadata:
-      labels:
-        app: missing-file-app
-    spec:
-      containers:
-      - name: missing-file-container
-        image: becloudready/k8s-troubleshooting-scenarios:2.0.0
-        env:
-        - name: FAILURE_MODE
-          value: "missing_file"
-    """
+        print("\n\033[1mTROUBLESHOOTING GUIDE:\033[0m")
+        if not config_ok:
+            print("\nConfigMap Issues Detected:")
 
-    dns_issues_scenario = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: dns-issues-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: dns-issues-app
-  template:
-    metadata:
-      labels:
-        app: dns-issues-app
-    spec:
-      dnsPolicy: Default
-      containers:
-      - name: dns-issues-container
-        image: becloudready/k8s-troubleshooting-scenarios:2.0.0
-        env:
-        - name: FAILURE_MODE
-          value: "dns"
-    """
+        if not dns_ok or not network_ok:
+            print("\nDNS/Network Issues Detected:")
+        sys.exit(1)
 
-    scheduling_issue_scenario = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: scheduling-issue-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: scheduling-issue-app
-  template:
-    metadata:
-      labels:
-        app: scheduling-issue-app
-    spec:
-      nodeSelector:
-        non-existent-label: "true"
-      containers:
-      - name: scheduling-issue-container
-        image: becloudready/k8s-troubleshooting-scenarios:2.0.0
-    """
-
-    taint_toleration_scenario = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tolerations-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: tolerations-app
-  template:
-    metadata:
-      labels:
-        app: tolerations-app
-    spec:
-      tolerations:
-      - key: "dedicated"
-        operator: "Equal"
-        value: "gpu"
-        effect: "NoSchedule"
-      containers:
-      - name: tolerations-container
-        image: becloudready/k8s-troubleshooting-scenarios:2.0.0
-    """
-
-    affinity_scenario = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: affinity-deployment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: affinity-app
-  template:
-    metadata:
-      labels:
-        app: affinity-app
-    spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - affinity-app
-            topologyKey: "kubernetes.io/hostname"
-      containers:
-      - name: affinity-container
-        image: becloudready/k8s-troubleshooting-scenarios:2.0.0
-    """
-
-    # Deploy Scenarios
-    deploy_scenario("Out-of-Memory (OOM) scenario", oom_scenario)
-    deploy_scenario("Missing File scenario", missing_file_scenario)
-    deploy_scenario("DNS Issues scenario", dns_issues_scenario)
-    deploy_scenario("Scheduling Issue scenario", scheduling_issue_scenario)
-    deploy_scenario("Taint/Toleration scenario", taint_toleration_scenario)
-    deploy_scenario("Affinity/Anti-Affinity scenario", affinity_scenario)
-
-    # Verify Deployments
-    verify_deployments()
+    print("\nDiagnostic complete. Container will remain running...")
+    while True:
+        time.sleep(3600)  # Keep container alive
 
 if __name__ == "__main__":
     main()
+
