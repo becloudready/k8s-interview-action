@@ -1,6 +1,13 @@
+name: 'Kubernetes Troubleshooting Action'
+description: 'troubleshoot them.'
+inputs:
+  kubeconfig:
+    description: 'Kubeconfig for Kubernetes cluster authentication.'
+    required: true
+    default: ${{ secrets.KUBECONFIG }}
+
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  env:
-    KUBECONFIG: ${{ inputs.kubeconfig }}
-    NAMESPACE: ${{ inputs.namespace }}
+  args:
+    - "${{ inputs.kubeconfig }}"
