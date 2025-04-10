@@ -1,17 +1,17 @@
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Install dependencies
-RUN pip install requests
-
-# Copy the interview deployment yaml and entrypoint script
-COPY interview-deployment.yaml .
-COPY troubleshoot_scenarios.py .
-
-# Create directory for ConfigMap mount
-RUN mkdir -p /etc/app
-
-# Set the default command to run the entrypoint.py
-CMD ["python", "troubleshoot_scenarios.py"]
+FROM python:3.11-alpine
+ 
+ # Install required dependencies
+ RUN apk add --no-cache curl bash kubectl
+ 
+ # Set working directory
+ WORKDIR /app
+ 
+ # Copy entrypoint script
+ COPY entrypoint.py /app/troubleshoot_scenarios.py
+ 
+ # Make entrypoint executable
+ RUN chmod +x /app/entrypoint.py
+ 
+ # Set the entrypoint (exec ensures proper signal handling)
+ ENTRYPOINT ["python3", "/app/troubleshoot_scenarios.py"]
 
