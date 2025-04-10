@@ -1,17 +1,23 @@
-FROM python:3.11-alpine
- 
- # Install required dependencies
- RUN apk add --no-cache curl bash kubectl
- 
- # Set working directory
- WORKDIR /app
- 
- # Copy entrypoint script
- COPY troubleshoot_scenarios.py /app/troubleshoot_scenarios.py
- 
- # Make entrypoint executable
- RUN chmod +x /app/troubleshoot_scenarios.py
- 
- # Set the entrypoint (exec ensures proper signal handling)
- ENTRYPOINT ["python3", "/app/troubleshoot_scenarios.py"]
+FROM python:3.9-slim
+
+# Install kubectl
+RUN apt-get update && apt-get install -y \
+    curl \
+    apt-transport-https \
+    ca-certificates \
+    && curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+    && echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list \
+    && apt-get update \
+    && apt-get install -y kubectl
+
+# Install other dependencies like requests
+RUN pip install kubernetes
+
+# Copy action files
+COPY deployment.yaml /action/deployment.yaml
+COPY configmap.yaml /action/configmap.yaml
+COPY troubleshoot.py /action/troubleshoot.py
+COPY entrypoint.sh /action/entrypoint.sh
+
+ENTRYPOINT ["/bin/bash", "/action/entrypoint.sh"]
 
