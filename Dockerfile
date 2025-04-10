@@ -4,13 +4,14 @@ WORKDIR /app
 
 # Install dependencies
 RUN pip install requests
-COPY interview-deployment.yaml .
 
-# Copy the interview script
+# Copy the interview deployment yaml and entrypoint script
+COPY interview-deployment.yaml .
 COPY entrypoint.py .
 
 # Create directory for ConfigMap mount
 RUN mkdir -p /etc/app
 
-CMD sh -c "kubectl apply -f interview-deployment.yaml && python ./entrypoint.py"
+# Set the default command to run the entrypoint.py
+CMD ["python", "entrypoint.py"]
 
