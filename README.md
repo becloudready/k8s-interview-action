@@ -44,7 +44,7 @@ jobs:
 
 
       - name: Run Kubernetes Troubleshooting Action
-        uses: becloudready/k8s-interview-action@v1
+        uses: becloudready/k8s-interview-action@v8
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: ${{ inputs.namespace }}
