@@ -7,10 +7,10 @@ FROM python:3.11-alpine
  WORKDIR /app
  
  # Copy entrypoint script
- COPY entrypoint.py /app/troubleshoot_scenarios.py
+ COPY troubleshoot_scenarios.py /app/troubleshoot_scenarios.py
  
  # Make entrypoint executable
- RUN chmod +x /app/entrypoint.py
+ RUN chmod +x /app/troubleshoot_scenarios.py
  
  # Set the entrypoint (exec ensures proper signal handling)
  ENTRYPOINT ["python3", "/app/troubleshoot_scenarios.py"]
