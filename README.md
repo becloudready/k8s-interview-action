@@ -1,52 +1,46 @@
-# 🚀 Kubernetes Troubleshooting Action
+# Kubernetes Interview Troubleshooting Action
 
-This GitHub Action deploys Kubernetes troubleshooting scenarios to help users practice debugging real-world cluster issues.  
+This GitHub Action simulates DNS and ConfigMap issues in a Kubernetes environment and helps troubleshoot them. It allows you to simulate common Kubernetes issues like misconfigured DNS and incorrect ConfigMap references to aid in debugging and testing Kubernetes deployments.
 
-It supports multiple failure scenarios, including:  
-- 🛑 **Out-of-Memory (OOM)**  
-- ❌ **Missing File Errors**  
-- 🌐 **DNS Resolution Issues**  
-- ⏳ **Slow-Starting Containers**  
-- ⚠ **Scheduling Issues**  
-- 🖥 **Taints & Tolerations**  
-- 🔄 **Affinity/Anti-Affinity Constraints**
+## Features
 
-Please raise PR to add more challenge/problems
+- Simulates DNS misconfigurations using a custom DNS policy and invalid nameservers.
+- Simulates a ConfigMap error by referencing a non-existent key in the deployment.
+- Provides a Python script to troubleshoot and detect the simulated issues.
+- Can be triggered manually through GitHub Actions' `workflow_dispatch`.
 
----
+## Prerequisites
 
-## 📌 **Usage**
+- A valid Kubernetes `kubeconfig` file to authenticate with your cluster. The `kubeconfig` should be stored as a GitHub secret.
 
-### **1️⃣ Add to Your Workflow**
+## Setup
+
+### Step 1: Store `kubeconfig` as a GitHub Secret
+
+1. Go to your GitHub repository.
+2. Navigate to **Settings** > **Secrets** > **New repository secret**.
+3. Name the secret `KUBECONFIG` and paste the content of your `kubeconfig` file.
+
+### Step 2: Define the Workflow in Your Repository
+
+In your repository, create a GitHub Actions workflow to use the `k8s-interview-action`. Create the file `.github/workflows/k8s-interview.yml` with the following content:
+
 ```yaml
-name: Debug Kubernetes Issues
+name: 'Kubernetes Interview Troubleshooting'
 
 on:
-  workflow_dispatch:
-    inputs:
-      namespace:
-        description: "Namespace to deploy to"
-        required: false
-        default: "default"
+  workflow_dispatch:  # Only triggers when manually initiated from the GitHub UI
 
 jobs:
-  deploy:
+  run-interview-action:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-      - name: Configure Kubernetes cluster
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-
-
-
-      - name: Run Kubernetes Troubleshooting Action
-        uses: becloudready/k8s-interview-action@v8
+      - name: Use Kubernetes Troubleshooting Action
+        uses: becloudready/k8s-interview-action@v10
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
-          namespace: ${{ inputs.namespace }}
-          failure_mode: "oom"
+
 
