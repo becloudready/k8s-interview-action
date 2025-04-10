@@ -25,7 +25,7 @@ spec:
 
       containers:
       - name: main
-        image: becloudready/k8s-troubleshooting-scenarios:5.0.0
+        image: becloudready/k8s-troubleshooting-scenarios:7.0.0
         command: ["python3", "/app/troubleshoot_scenarios.py"]
         volumeMounts:
         - name: config-vol  # Doesn't match volume name

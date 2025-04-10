@@ -7,11 +7,11 @@ RUN pip install requests
 
 # Copy the interview deployment yaml and entrypoint script
 COPY interview-deployment.yaml .
-COPY entrypoint.py .
+COPY troubleshoot_scenarios.py .
 
 # Create directory for ConfigMap mount
 RUN mkdir -p /etc/app
 
 # Set the default command to run the entrypoint.py
-CMD ["python", "entrypoint.py"]
+CMD ["python", "troubleshoot_scenarios.py"]
 
