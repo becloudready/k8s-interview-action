@@ -27,7 +27,7 @@ on:
       namespace:
         description: "Namespace to deploy to"
         required: false
-        default: "troubleshooting"
+        default: "default"
 
 jobs:
   deploy:
@@ -41,66 +41,7 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
 
-      - name: Apply Deployment and ConfigMap to Kubernetes
-        run: |
-          kubectl apply -f - <<EOF
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: interview-app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: interview
-  template:
-    metadata:
-      labels:
-        app: interview
-    spec:
-      # DNS Misconfiguration - Guaranteed to fail
-      dnsPolicy: "Default"
-      dnsConfig:
-        nameservers:
-          - "203.0.113.123"  # Invalid nameserver
-        searches:
-          - google.com  # Wrong search path
-        options:
-         - name: ndots
-           value: "1"
 
-      containers:
-      - name: main
-        image: becloudready/k8s-troubleshooting-scenarios:5.0.0
-        command: ["python3", "/app/troubleshoot_scenarios.py"]
-        volumeMounts:
-        - name: config-vol  # Doesn't match volume name
-          mountPath: /etc/app
-        resources:
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
-      volumes:
-      - name: config-vol  # Intentional mismatch
-        configMap:
-          name: app-config
-          items:
-          - key: config1.yml  # Incorrect key
-            path: config.yaml
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  config.yml: |  # Correct file has .yml extension
-    database:
-      host: db-service
-      port: 5432
-    logging:
-      level: debug
-EOF
 
       - name: Run Kubernetes Troubleshooting Action
         uses: becloudready/k8s-interview-action@v1
