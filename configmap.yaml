@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  config.yml: |
+    database:
+      host: db-service
+      port: 5432
+    logging:
+      level: debug
+
