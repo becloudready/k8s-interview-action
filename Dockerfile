@@ -6,10 +6,10 @@ WORKDIR /app
 RUN pip install requests
 
 # Copy the interview script
-COPY troubleshoot_scenarios.py .
+COPY entrypoint.py .
 
 # Create directory for ConfigMap mount
 RUN mkdir -p /etc/app
 
 # Set default command
-CMD ["python", "./troubleshoot_scenarios.py"]
+CMD ["python", "./entrypoint.py"]
