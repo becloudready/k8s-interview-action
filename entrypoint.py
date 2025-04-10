@@ -5,6 +5,7 @@ import socket
 import requests
 from pathlib import Path
 import time
+import subprocess
 
 def print_result(success, message):
     color = "\033[32m" if success else "\033[31m"
@@ -110,6 +111,82 @@ def gather_system_info():
     except Exception as e:
         print(f"Error: {str(e)}")
 
+def apply_k8s_deployment():
+    """Apply Kubernetes Deployment YAML"""
+    print_header("Kubernetes Deployment")
+    
+    # Kubernetes YAML to deploy
+    deployment_yaml = """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interview-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: interview
+  template:
+    metadata:
+      labels:
+        app: interview
+    spec:
+      dnsPolicy: "Default"
+      dnsConfig:
+        nameservers:
+          - "203.0.113.123"  # Invalid nameserver
+        searches:
+          - google.com  # Wrong search path
+        options:
+         - name: ndots
+           value: "1"
+      containers:
+      - name: main
+        image: becloudready/k8s-troubleshooting-scenarios:5.0.0
+        command: ["python3", "/app/troubleshoot_scenarios.py"]
+        volumeMounts:
+        - name: config-vol
+          mountPath: /etc/app
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+      volumes:
+      - name: config-vol
+        configMap:
+          name: app-config
+          items:
+          - key: config1.yml
+            path: config.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  config.yml: |
+    database:
+      host: db-service
+      port: 5432
+    logging:
+      level: debug
+    """
+    
+    # Save the YAML to a temporary file
+    temp_yaml_path = "/tmp/deployment.yaml"
+    with open(temp_yaml_path, "w") as f:
+        f.write(deployment_yaml)
+    
+    # Apply the YAML file to Kubernetes using kubectl
+    try:
+        subprocess.check_call(["kubectl", "apply", "-f", temp_yaml_path])
+        print_result(True, "Kubernetes Deployment applied successfully.")
+    except subprocess.CalledProcessError as e:
+        print_result(False, f"Failed to apply Kubernetes deployment: {e}")
+        return False
+
+    return True
+
 def main():
     print("\033[1m=== Kubernetes Troubleshooting Diagnostic ===\033[0m")
 
@@ -130,10 +207,15 @@ def main():
             print("\nDNS/Network Issues Detected:")
         sys.exit(1)
 
+    # Apply the Kubernetes deployment
+    if not apply_k8s_deployment():
+        sys.exit(1)
+
     print("\nDiagnostic complete. Container will remain running...")
     while True:
         time.sleep(3600)  # Keep container alive
 
 if __name__ == "__main__":
     main()
+
 
