@@ -1,3 +1,5 @@
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  env:
+   KUBECONFIG: ${{ inputs.kubeconfig }}
