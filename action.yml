@@ -1,5 +1,12 @@
+name: 'Deploy Kubernetes Interview Challenge'
+description: 'Kubeconfig variable'
+inputs:
+  kube-config:  # id of input
+    description: 'Kubeconfig string'
+    required: true
+    default: 'kubeconfig'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  env:
-   KUBECONFIG: ${{ inputs.kubeconfig }}
+  args:
+    - ${{ inputs.kube-config }}
