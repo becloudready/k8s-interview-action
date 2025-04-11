@@ -1,11 +1,13 @@
 #!/bin/bash
+kubectl get pods -A
+echo "🚀 Applying Kubernetes manifests..."
+kubectl apply -f configmap.yaml || echo "⚠️ ConfigMap apply failed"
+kubectl apply -f deployment.yaml || echo "⚠️ Deployment apply failed"
 
-# Set up kubeconfig
-export KUBECONFIG=~/.kube/config
+echo "🐍 Running Python Troubleshooter..."
+python3 troubleshoot.py
 
-# Apply the Kubernetes resources
-kubectl apply -f /action/deployment.yaml
-kubectl apply -f /action/configmap.yaml
+
 
 # Run the Python troubleshooting script
 python3 /action/troubleshoot.py
