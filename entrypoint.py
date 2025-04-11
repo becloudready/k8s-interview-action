@@ -98,7 +98,7 @@ def verify_pods():
         print("❌ No pod found to get logs from.")
 
 def main():
-    run_command("cat ~/.kube/config")
+    run_command("export KUBECONFIG=/home/runner/.kube/config")
     deploy_faulty_yaml()
     verify_pods()
 
