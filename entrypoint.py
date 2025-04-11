@@ -99,9 +99,6 @@ def verify_pods():
 
 def main():
     print(f"Current KUBECONFIG: {os.getenv('KUBECONFIG')}")
-    kubeconfig_path = "/home/runner/.kube/config"
-    os.environ['KUBECONFIG'] = kubeconfig_path
-    print(f"Set KUBECONFIG to: {kubeconfig_path}")
     deploy_faulty_yaml()
     verify_pods()
 
