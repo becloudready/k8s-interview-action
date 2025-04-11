@@ -1,19 +1,16 @@
 FROM python:3.9-slim
 
-# Install necessary dependencies including gnupg for adding the Kubernetes APT key
-RUN apt-get update && apt-get install -y \
-    curl \
-    apt-transport-https \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    && curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | tee /etc/apt/trusted.gpg.d/kubernetes.asc \
-    && echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list \
-    && apt-get update \
-    && apt-get install -y kubectl
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl ca-certificates gnupg && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install other dependencies like requests
-RUN pip install kubernetes
+# Download and install kubectl (with checksum verification)
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
+    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check && \
+    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
+    rm kubectl kubectl.sha256
+
 # Copy action files
 COPY deployment.yaml /action/deployment.yaml
 COPY configmap.yaml /action/configmap.yaml
