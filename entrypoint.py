@@ -18,21 +18,21 @@ def run_command(command):
 def setup_kubeconfig():
     """Set up Kubernetes configuration from environment variable."""
     print("🔹 Setting up Kubernetes configuration")
-    kubeconfig_base64 = os.getenv("KUBECONFIG", "")
+    kubeconfig = os.getenv("KUBECONFIG", "")
 
-    if not kubeconfig_base64:
+    if not kubeconfig:
         print("❌ KUBECONFIG environment variable is missing!")
         sys.exit(1)
 
     kubeconfig_path = os.path.expanduser("~/.kube/config")
     os.makedirs(os.path.dirname(kubeconfig_path), exist_ok=True)
 
-    with open(kubeconfig_path, "wb") as f:
-        f.write(base64.b64decode(kubeconfig_base64))
+       # Directly write the KUBECONFIG secret to the kubeconfig file
+     with open(kubeconfig_path, "w") as f:
+         f.write(kubeconfig)
 
     os.environ["KUBECONFIG"] = kubeconfig_path
-    run_command("kubectl version --client")
-    run_command("kubectl cluster-info")
+
 
 def deploy_faulty_yaml():
     """Deploy the known faulty Kubernetes scenario."""
