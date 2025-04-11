@@ -1,9 +1,5 @@
-name: 'Kubernetes Troubleshooting Action'
-description: 'troubleshoot them.'
-
-
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - "${{ inputs.kubeconfig }}"
+  env:
+     KUBECONFIG: ${{ inputs.kubeconfig }}
