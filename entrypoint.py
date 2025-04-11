@@ -13,13 +13,14 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         print(f"❌ Error executing command: {command}\n{e.stderr}")
         sys.exit(1)
-
+    run_command("kubectl version --client")
+    run_command("kubectl cluster-info")
 
 def deploy_faulty_yaml():
     """Deploy the DNS + ConfigMap issue scenario."""
     print("🔹 Deploying DNS + ConfigMap issue scenario")
 
-    yaml_content = r"""
+yaml_content = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
