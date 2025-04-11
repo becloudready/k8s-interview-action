@@ -14,19 +14,6 @@ def run_command(command):
         print(f"❌ Error executing command: {command}\n{e.stderr}")
         sys.exit(1)
 
-def setup_kubeconfig():
-    """Set up Kubernetes configuration using file path (no base64)."""
-    kubeconfig_path = os.getenv("KUBECONFIG", "")
-
-    if not kubeconfig_path or not os.path.exists(kubeconfig_path):
-        print("❌ KUBECONFIG environment variable is not set or file does not exist!")
-        sys.exit(1)
-
-    os.environ["KUBECONFIG"] = kubeconfig_path
-    print(f"🔹 Using kubeconfig at: {kubeconfig_path}")
-
-    run_command("kubectl version --client")
-    run_command("kubectl cluster-info")
 
 def deploy_faulty_yaml():
     """Deploy the DNS + ConfigMap issue scenario."""
@@ -112,7 +99,6 @@ def verify_pods():
         print("❌ No pod found to get logs from.")
 
 def main():
-    setup_kubeconfig()
     deploy_faulty_yaml()
     verify_pods()
 
