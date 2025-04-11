@@ -97,10 +97,15 @@ def verify_pods():
     else:
         print("❌ No pod found to get logs from.")
 
+
+
 def main():
-    print(f"Current KUBECONFIG: {os.getenv('KUBECONFIG')}")
+    kubeconfig = os.getenv('KUBECONFIG')
+    print(f"Current KUBECONFIG: {kubeconfig}")
+    print(f"export KUBECONFIG={kubeconfig}")
     deploy_faulty_yaml()
     verify_pods()
+
 
 if __name__ == "__main__":
     main()
