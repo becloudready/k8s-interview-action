@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set up kubeconfig
-echo "$1" > ~/.kube/config
+export KUBECONFIG=~/.kube/config
 
 # Apply the Kubernetes resources
 kubectl apply -f /action/deployment.yaml
