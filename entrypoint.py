@@ -78,7 +78,7 @@ data:
         temp_yaml.write(yaml_content)
         temp_path = temp_yaml.name
 
-    run_command(f"kubectl apply -f {temp_path}")
+    run_command(f"kubectl apply --validate=false -f  {temp_path}")
 
 def verify_pods():
     """Fetch pod and logs to confirm error behavior."""
