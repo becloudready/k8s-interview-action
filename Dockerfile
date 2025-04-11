@@ -1,13 +1,13 @@
- FROM python:3.11-alpine
+FROM python:3.11-alpine
  
  # Install required dependencies
- RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     curl \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    bash && \
-    curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    bash \
+    ca-certificates
+
+# Install kubectl (latest stable)
+RUN curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
     chmod +x kubectl && mv kubectl /usr/local/bin/kubectl && \
     kubectl version --client
  
