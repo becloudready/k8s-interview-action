@@ -12,10 +12,11 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
     rm kubectl kubectl.sha256
 
 # Copy action files
-COPY deployment.yaml /action/deployment.yaml
-COPY configmap.yaml /action/configmap.yaml
-COPY troubleshoot.py /action/troubleshoot.py
-COPY entrypoint.sh /action/entrypoint.sh
 
-ENTRYPOINT ["/bin/bash", "/action/entrypoint.sh"]
+WORKDIR /action
+COPY deployment.yaml configmap.yaml troubleshoot.py entrypoint.sh ./
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
 
+# Set entrypoint
+ENTRYPOINT ["/action/entrypoint.sh"]
