@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import base64
 import subprocess
 import sys
 import tempfile
@@ -16,26 +15,21 @@ def run_command(command):
         sys.exit(1)
 
 def setup_kubeconfig():
-    """Set up Kubernetes configuration from environment variable."""
-    print("🔹 Setting up Kubernetes configuration")
-    kubeconfig = os.getenv("KUBECONFIG", "")
+    """Set up Kubernetes configuration using file path (no base64)."""
+    kubeconfig_path = os.getenv("KUBECONFIG", "")
 
-    if not kubeconfig:
-        print("❌ KUBECONFIG environment variable is missing!")
+    if not kubeconfig_path or not os.path.exists(kubeconfig_path):
+        print("❌ KUBECONFIG environment variable is not set or file does not exist!")
         sys.exit(1)
 
-    kubeconfig_path = os.path.expanduser("~/.kube/config")
-    os.makedirs(os.path.dirname(kubeconfig_path), exist_ok=True)
-
-       # Directly write the KUBECONFIG secret to the kubeconfig file
-     with open(kubeconfig_path, "w") as f:
-         f.write(kubeconfig)
-
     os.environ["KUBECONFIG"] = kubeconfig_path
+    print(f"🔹 Using kubeconfig at: {kubeconfig_path}")
 
+    run_command("kubectl version --client")
+    run_command("kubectl cluster-info")
 
 def deploy_faulty_yaml():
-    """Deploy the known faulty Kubernetes scenario."""
+    """Deploy the DNS + ConfigMap issue scenario."""
     print("🔹 Deploying DNS + ConfigMap issue scenario")
 
     yaml_content = r"""
