@@ -2,4 +2,4 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-   KUBECONFIG: ${{ secrets.kubeconfig }}
+   KUBECONFIG: ${{ inputs.kubeconfig }}
