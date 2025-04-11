@@ -100,9 +100,7 @@ def verify_pods():
 
 
 def main():
-    kubeconfig = os.getenv('KUBECONFIG')
-    print(f"Current KUBECONFIG: {kubeconfig}")
-    print(f"export KUBECONFIG={kubeconfig}")
+   
     deploy_faulty_yaml()
     verify_pods()
 
