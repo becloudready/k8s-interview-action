@@ -13,14 +13,12 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         print(f"❌ Error executing command: {command}\n{e.stderr}")
         sys.exit(1)
-    run_command("kubectl version --client")
-    run_command("kubectl cluster-info")
 
 def deploy_faulty_yaml():
     """Deploy the DNS + ConfigMap issue scenario."""
     print("🔹 Deploying DNS + ConfigMap issue scenario")
 
-yaml_content = """
+    yaml_content = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,7 +72,7 @@ data:
       port: 5432
     logging:
       level: debug
-    """
+"""
 
     with tempfile.NamedTemporaryFile("w", delete=False) as temp_yaml:
         temp_yaml.write(yaml_content)
@@ -100,10 +98,12 @@ def verify_pods():
         print("❌ No pod found to get logs from.")
 
 def main():
+    run_command("kubectl get pods -A")
     deploy_faulty_yaml()
     verify_pods()
 
 if __name__ == "__main__":
     main()
+
 
 
